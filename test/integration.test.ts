@@ -23,50 +23,39 @@ test("main with --dry-run prints prompt to stdout", async () => {
   }
 });
 
-test("parseArgs --help throws UsageError", () => {
-  assert.throws(() => parseArgs(["--help"]), UsageError);
+test("parseArgs --help returns help result", () => {
+  const result = parseArgs(["--help"]);
+  assert.equal(result.kind, "help");
+  if (result.kind !== "help") throw new Error("expected help");
+  assert.match(result.text, /Usage:/);
+  assert.match(result.text, /--file/);
+  assert.match(result.text, /--github/);
 });
 
-test("parseArgs --version prints and exits", () => {
-  const originalWrite = process.stdout.write.bind(process.stdout);
-  const originalExit = process.exit.bind(process.exit);
-  let output = "";
-  let exitCalled = false;
-
-  process.stdout.write = ((chunk: Uint8Array | string) => {
-    output += chunk.toString();
-    return true;
-  }) as typeof process.stdout.write;
-
-  process.exit = (() => {
-    exitCalled = true;
-    return undefined as never;
-  }) as typeof process.exit;
-
-  try {
-    parseArgs(["--version"]);
-  } finally {
-    process.stdout.write = originalWrite;
-    process.exit = originalExit;
-  }
-
-  assert.ok(exitCalled, "process.exit should have been called");
-  assert.match(output, /^\d+\.\d+\.\d+/);
+test("parseArgs --version returns version result", () => {
+  const result = parseArgs(["--version"]);
+  assert.equal(result.kind, "version");
 });
 
 test("parseArgs --verbose flag is parsed", () => {
-  const options = parseArgs(["--file", "test.md", "--verbose"]);
-  assert.equal(options.verbose, true);
+  const result = parseArgs(["--file", "test.md", "--verbose"]);
+  assert.equal(result.kind, "options");
+  if (result.kind !== "options") throw new Error("expected options");
+  assert.equal(result.options.verbose, true);
 });
 
 test("parseArgs -v shorthand enables verbose", () => {
-  const options = parseArgs(["--file", "test.md", "-v"]);
-  assert.equal(options.verbose, true);
+  const result = parseArgs(["--file", "test.md", "-v"]);
+  assert.equal(result.kind, "options");
+  if (result.kind !== "options") throw new Error("expected options");
+  assert.equal(result.options.verbose, true);
 });
 
 test("parseArgs verbose defaults to false", () => {
-  const options = parseArgs(["--file", "test.md"]);
-  assert.equal(options.verbose, false);
+  const result = parseArgs(["--file", "test.md"]);
+  assert.equal(result.kind, "options");
+  if (result.kind !== "options") throw new Error("expected options");
+  assert.equal(result.options.verbose, false);
 });
 
 test("parseArgs suggests --file for --input", () => {

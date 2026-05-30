@@ -8,9 +8,6 @@ assignees: ""
 
 ## Problem
 
-
 ## Proposed Behavior
 
-
 ## Alternatives Considered
-

@@ -1,35 +1,16 @@
-import OpenAI from "openai";
 import { UsageError } from "./errors.js";
-import { buildTriagePrompt } from "./prompt.js";
-import type { TriageRequest, TriageResult } from "./types.js";
+import { buildTriagePrompt, getSystemPrompt } from "./prompt.js";
+import type { TriageProvider, TriageRequest, TriageResult } from "./types.js";
 
-export async function runTriage(request: TriageRequest, model: string): Promise<TriageResult> {
-  if (!process.env.OPENAI_API_KEY) {
-    throw new UsageError("OPENAI_API_KEY is required unless you run with --dry-run.");
-  }
-
-  const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
-  const response = await client.chat.completions.create({
-    model,
-    temperature: 0.2,
-    response_format: { type: "json_object" },
-    messages: [
-      {
-        role: "system",
-        content: "You produce safe, concise maintainer triage notes for open-source projects."
-      },
-      {
-        role: "user",
-        content: buildTriagePrompt(request)
-      }
-    ]
-  });
-
-  const content = response.choices[0]?.message.content;
-  if (!content) {
-    throw new UsageError("OpenAI returned an empty response.");
-  }
-
+export async function runTriage(
+  request: TriageRequest,
+  model: string,
+  provider: TriageProvider,
+  options?: { systemPrompt?: string; triageTemplate?: string },
+): Promise<TriageResult> {
+  const systemPrompt = getSystemPrompt(options?.systemPrompt);
+  const userPrompt = buildTriagePrompt(request, options?.triageTemplate);
+  const content = await provider.complete(model, systemPrompt, userPrompt);
   return parseTriageResult(content);
 }
 

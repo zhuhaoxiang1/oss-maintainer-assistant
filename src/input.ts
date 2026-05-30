@@ -1,29 +1,69 @@
 import { readFile } from "node:fs/promises";
 import { UsageError } from "./errors.js";
-import { fetchGitHubMarkdown, inferModeFromGitHubUrl } from "./github.js";
-import type { AssistantMode, CliOptions, TriageRequest } from "./types.js";
+import { fetchComments, fetchGitHubMarkdown, inferModeFromGitHubUrl, fetchPRFiles, parseGitHubUrl } from "./github.js";
+import type { AssistantMode, CliOptions, InputSource, TriageRequest } from "./types.js";
 
 export async function loadTriageRequest(options: CliOptions): Promise<TriageRequest> {
-  const body =
-    options.source.kind === "file"
-      ? await readMarkdownFile(options.source.value)
-      : await fetchGitHubMarkdown(options.source.value);
+  const token = process.env.GITHUB_TOKEN;
 
-  const mode = resolveMode(options.mode, options.source.value);
-  return {
+  if (options.verbose && token) {
+    process.stderr.write("[verbose] GITHUB_TOKEN is set, using authenticated requests\n");
+  }
+
+  let body: string;
+
+  if (options.source.kind === "file") {
+    body = await readMarkdownFile(options.source.value);
+  } else {
+    body = await fetchGitHubMarkdown(options.source.value, fetch, token);
+  }
+
+  const mode = resolveMode(options.mode, options.source);
+
+  const request: TriageRequest = {
     sourceLabel: options.source.value,
+    sourceKind: options.source.kind,
     mode,
-    body
+    body,
   };
+
+  if (options.source.kind === "github") {
+    const ref = parseGitHubUrl(options.source.value);
+    request.githubRef = ref;
+
+    // Enrich PR mode with diff and comments
+    if (mode === "pr") {
+      try {
+        const files = await fetchPRFiles(ref, fetch, token);
+        body += `\n\n## Changed Files\n\n${files}`;
+      } catch {
+        // Non-fatal: PR files may not be available
+      }
+    }
+
+    // Fetch comments for richer context
+    try {
+      const comments = await fetchComments(ref, fetch, token);
+      if (comments) {
+        body += `\n\n## Comments\n\n${comments}`;
+      }
+    } catch {
+      // Non-fatal: comments may not be available
+    }
+
+    request.body = body;
+  }
+
+  return request;
 }
 
-export function resolveMode(mode: AssistantMode, sourceValue: string): "issue" | "pr" {
+export function resolveMode(mode: AssistantMode, source: InputSource): "issue" | "pr" {
   if (mode !== "auto") {
     return mode;
   }
 
-  if (sourceValue.includes("github.com/")) {
-    return inferModeFromGitHubUrl(sourceValue);
+  if (source.kind === "github") {
+    return inferModeFromGitHubUrl(source.value);
   }
 
   return "issue";

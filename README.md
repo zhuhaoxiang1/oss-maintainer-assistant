@@ -97,13 +97,13 @@ oma --file examples/issue.md --dry-run --verbose
 
 The assistant returns a structured result with five fields:
 
-| Field | Description |
-|-------|-------------|
-| `summary` | One or two concise sentences summarizing the item. |
-| `labels` | Suggested labels such as `type:bug`, `area:cli`. |
-| `priority` | `low`, `medium`, or `high`. |
-| `maintainerReply` | A respectful draft reply for the author. |
-| `changelogNote` | A short release note when relevant. |
+| Field             | Description                                        |
+| ----------------- | -------------------------------------------------- |
+| `summary`         | One or two concise sentences summarizing the item. |
+| `labels`          | Suggested labels such as `type:bug`, `area:cli`.   |
+| `priority`        | `low`, `medium`, or `high`.                        |
+| `maintainerReply` | A respectful draft reply for the author.           |
+| `changelogNote`   | A short release note when relevant.                |
 
 ### Markdown output (default)
 
