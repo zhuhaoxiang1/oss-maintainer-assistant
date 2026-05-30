@@ -1,0 +1,75 @@
+{
+  "name": "oss-maintainer-assistant",
+  "version": "0.1.0",
+  "description": "A dry-run first CLI that helps OSS maintainers summarize issues and PRs.",
+  "type": "module",
+  "bin": {
+    "oss-maintainer-assistant": "./dist/src/cli.js",
+    "oma": "./dist/src/cli.js"
+  },
+  "main": "./dist/src/index.js",
+  "types": "./dist/src/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/src/index.d.ts",
+      "default": "./dist/src/index.js"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE",
+    "CHANGELOG.md"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "test": "npm run build && node --test dist/test/*.test.js",
+    "test:coverage": "npm run build && node --test --experimental-test-coverage dist/test/*.test.js",
+    "start": "node dist/src/cli.js",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "typecheck": "tsc --noEmit",
+    "check": "npm run typecheck && npm run lint && npm run format:check && npm test"
+  },
+  "keywords": [
+    "open-source",
+    "maintainer",
+    "triage",
+    "github",
+    "ai",
+    "cli",
+    "typescript",
+    "pull-request",
+    "issue-triage",
+    "openai-api",
+    "developer-tools",
+    "automation"
+  ],
+  "author": "zhuhaoxiang1",
+  "license": "MIT",
+  "homepage": "https://github.com/zhuhaoxiang1/oss-maintainer-assistant#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/zhuhaoxiang1/oss-maintainer-assistant.git"
+  },
+  "bugs": {
+    "url": "https://github.com/zhuhaoxiang1/oss-maintainer-assistant/issues"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "openai": "^4.104.0"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.27.0",
+    "@types/node": "^22.15.29",
+    "eslint": "^9.27.0",
+    "eslint-config-prettier": "^10.1.5",
+    "prettier": "^3.5.3",
+    "typescript": "^5.8.3",
+    "typescript-eslint": "^8.33.0"
+  }
+}
